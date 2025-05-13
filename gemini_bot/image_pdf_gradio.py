@@ -1,4 +1,3 @@
-import google.generativeai as genai
 import PIL.Image
 # Gemini related packages
 from google import genai
@@ -8,11 +7,11 @@ import gradio as gr
 # API Key is added
 GOOGLE_API_KEY = "AIzaSyD9hDOBCiyaZLl6gbmZiJQqdF032gcMBBE"
 # Step 1: Initialize Gemini API
-from google import genai
 # Define model ID
 model_id = "gemini-2.0-flash"
 # Initialize the Gemini API client
 client = genai.Client(api_key=GOOGLE_API_KEY)
+new_client = client.chats.create()
 
 # Step 2: Create a function to process images
 def process_image(image_path, prompt_choice):

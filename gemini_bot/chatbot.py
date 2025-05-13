@@ -1,5 +1,5 @@
 # The library and API Key is added
-import google.generativeai as genai
+from google import genai
 import time
 import gradio as gr
 

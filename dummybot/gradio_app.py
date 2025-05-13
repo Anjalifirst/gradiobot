@@ -50,6 +50,7 @@ def respond(message, history):
     else:
         return "Oops !! Try Show_image for a cute one :-) !!"
 
+
 # Define the Bot
 with gr.Blocks() as demo:
     gr.Markdown("# FinGPT Bot")
@@ -64,14 +65,12 @@ with gr.Blocks() as demo:
         
     """)
     gr.ChatInterface(
-        #title="Multimodal ChatBot",
+        # title="Multimodal ChatBot",
         fn=respond,
         multimodal=True,
         type="messages",
-        #description="Try commands like 'hi', 'SHOW_IMAGE', or 'SHOW_CHART' or 'SHOW_FILES', 'SHOW_HISTORY' You can also upload a file.",
+        # description="Try commands like 'hi', 'SHOW_IMAGE', or 'SHOW_CHART' or 'SHOW_FILES', 'SHOW_HISTORY' You can also upload a file.",
     )
 
 # Launch the Bot
 demo.launch()
-
-
