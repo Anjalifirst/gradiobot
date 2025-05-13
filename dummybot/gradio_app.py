@@ -52,7 +52,7 @@ def respond(message, history):
 
 
 # Define the Bot
-with gr.Blocks() as demo:
+with gr.Blocks(fill_height=True) as demo:
     gr.Markdown("# FinGPT Bot")
     gr.Markdown("""
     We can do all these with the FinGPT.

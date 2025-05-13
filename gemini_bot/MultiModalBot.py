@@ -88,7 +88,7 @@ def gemini_response(gr_message, history):
 
 
 # Define the Bot
-with gr.Blocks() as demo:
+with gr.Blocks(fill_height=True) as demo:
     gr.Markdown("# FinGPT Bot")
     gr.Markdown("""
     I am a HelpFul AI Assistant. Try me.
