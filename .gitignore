@@ -13,9 +13,6 @@ build/
 .venv/
 .mypy_cache/
 .pytest_cache/
-.ipynb_checkpoints/
-__pycache__/
-*.egg-info/
 *.egg
 *.whl
 *.tar.gz

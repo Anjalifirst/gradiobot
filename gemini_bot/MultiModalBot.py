@@ -1,4 +1,6 @@
+import mimetypes
 import os
+from pathlib import Path
 from textwrap import dedent
 
 import gradio as gr
@@ -20,7 +22,7 @@ my_chat = client.chats.create(
     model=MODEL_ID,
     config={
         "system_instruction": dedent("""
-        You are an helpful Polite FinancialAI Assitant. Answer user queries with below guidelines.
+        You are an helpful polite Financial AI Assitant. Answer user queries with below guidelines.
         Guidelines:
          - Don't Respond questions that are not related to Finance.
          - Only handle files that are PDF, CSV, and Image.
@@ -35,6 +37,28 @@ my_chat = client.chats.create(
 )
 
 
+def get_mime_type(file_path):
+    """
+    Get the MIME type of a file.
+    """
+    mime_type, _ = mimetypes.guess_type(file_path)
+    return mime_type
+
+
+def get_file_bytes(file_path):
+    """
+    Get the bytes of a file.
+    else return None
+    """
+    with open(file_path, "rb") as file:
+        file_bytes = file.read()
+
+    mime_type = get_mime_type(file_path)
+    if mime_type is None:
+        return None
+    return T.Part.from_bytes(data=file_bytes, mime_type=mime_type)
+
+
 # -----------------------------------------------------------------------------------------------------
 def gemini_response(gr_message, history):
     """
@@ -42,16 +66,24 @@ def gemini_response(gr_message, history):
     """
     # Extract the message and List of Files
     text_message = gr_message.get("text")
-    file_list = gr_message.get('files')
+    file_list = gr_message.get('files', [])
 
+    # Check if the file is a valid type else don't attach.
+    message_attachments = []
+    for f in file_list:
+        file_path = Path(f)
+        if file_path.exists():
+            file_data = get_file_bytes(file_path=f)
+            if file_data is not None:
+                message_attachments.append(file_data)
     # create message
-    message = [str(text_message)] + [T.FileData(file_uri=f, mime_type=f.type) for f in file_list]
+    message = [str(text_message)] + message_attachments
     response = my_chat.send_message(message)
 
     # Check the parts in the response if text respond text, if image show image  any other as file
-    # return response.function_calls
-    # return response.executable_code
-    # return response.code_execution_result
+    print("Funcs:", response.function_calls)
+    print("Code:", response.executable_code)
+    print("Code_Results:", response.code_execution_result)
     return response.text
 
 
