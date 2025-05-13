@@ -4,7 +4,7 @@ import time
 import gradio as gr
 
 # API key 
-GOOGLE_API_KEY = "AIzaSyD9hDOBCiyaZLl6gbmZiJQqdF032gcMBBE"
+GOOGLE_API_KEY = ""
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Model configuration
