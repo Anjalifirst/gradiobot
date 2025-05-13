@@ -6,7 +6,7 @@ from google.genai import types
 import gradio as gr
 
 # API Key is added
-GOOGLE_API_KEY = "AIzaSyD9hDOBCiyaZLl6gbmZiJQqdF032gcMBBE"
+GOOGLE_API_KEY = ""
 # Step 1: Initialize Gemini API
 from google import genai
 # Define model ID
