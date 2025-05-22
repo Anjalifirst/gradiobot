@@ -8,6 +8,8 @@ import gradio as gr
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types as T
+import pandas as pd
+
 
 # -----------------------------------------------------------------------------------------------------
 # Get Confs
@@ -39,35 +41,25 @@ my_chat = client.chats.create(
 
 
 def get_mime_type(file_path):
-    """
-    Get the MIME type of a file.
-    """
     mime_type, _ = mimetypes.guess_type(file_path)
+    if file_path.endswith(".csv"):
+        mime_type = "text/plain"  # Treat CSV as text
     return mime_type
 
 
 def get_file_bytes(file_path):
-    """
-    Get the bytes of a file.
-    else return None
-    """
+    """Extract text from CSV files before sending to Gemini."""
+    mime_type = get_mime_type(file_path)
+
+    if mime_type == "text/csv":
+        df = pd.read_csv(file_path)  # Read CSV file
+        return df.to_string()  # Convert DataFrame to a readable text format
+
     with open(file_path, "rb") as file:
         file_bytes = file.read()
 
-    mime_type = get_mime_type(file_path)
-    if mime_type is None:
-        return None
-    return T.Part.from_bytes(data=file_bytes, mime_type=mime_type)
+    return T.Part.from_bytes(data=file_bytes, mime_type=mime_type) if mime_type else None
 
-from pathlib import Path
-from typing import Dict, Any, List
-
-from fpdf import FPDF
-import tempfile
-
-from fpdf import FPDF
-import tempfile
-from pathlib import Path
 
 # Global variable to store latest PDF path
 latest_pdf_path = None
@@ -83,23 +75,23 @@ def create_pdf_output(text):
         pdf_path = temp_file.name
         pdf.output(pdf_path)
 
-    return pdf_path  # ✅ Returns path for download
+    return pdf_path  # Returns path for download
 
-
+# -----------------------------------------------------------------------------------------------------
 def gemini_response(gr_message, history):
     """Get Chat Response from the Gemini Chatbot, while storing responses as PDFs."""
 
-    global latest_pdf_path  # ✅ Keep track of the last PDF
+    global latest_pdf_path  # Keep track of the last PDF
 
-    # Step 0: Extract the text and files from the input
+    # Extract the text and files from the input
     text_message = gr_message.get("text", "")
     file_list = gr_message.get("files", [])
 
-    # Step 1: Check if the user is requesting a PDF
+    # Check if the user is requesting a PDF
     if "pdf" in text_message.lower():
-        return {"text": "", "files": [latest_pdf_path]}  # ✅ Serve PDF on request
+        return {"text": "", "files": [latest_pdf_path]}  # Serve PDF on request
 
-    # Step 1: Attach valid files (if any)
+    # Attach valid files (if any)
     message_attachments = []
     for f in file_list:
         file_path = Path(f)
@@ -108,19 +100,19 @@ def gemini_response(gr_message, history):
             if file_data is not None:
                 message_attachments.append(file_data)
 
-    # Step 2: Send message to Gemini chatbot
+    # Send message to Gemini chatbot
     message = [str(text_message)] + message_attachments
     response = my_chat.send_message(message)
 
-    # Step 4: Create PDF only if response is valid
+    # Create PDF only if response is valid
     response_text = response.text.strip()
     if "cannot provide the pdf" not in response_text.lower():
         latest_pdf_path = create_pdf_output(response_text)
     
-
-    # Step 5: Otherwise return just the text
+    # Otherwise return just the text
     return response.text
 
+# -----------------------------------------------------------------------------------------------------
 # Define the Bot
 with gr.Blocks(fill_height=True) as demo:
     gr.Markdown("# FinGPT Bot")
@@ -128,7 +120,8 @@ with gr.Blocks(fill_height=True) as demo:
     I am a HelpFul AI Assistant. Try me.
     - Ask Financial Questions
     - Upload a Image and ask to describe it.
-    - Upload a Financial PDF and ask questions on it.     
+    - Upload a Financial CSV/PDF and ask questions on it. 
+    - Download response in PDF.                
     """)
     gr.ChatInterface(
         # title="Multimodal ChatBot",
