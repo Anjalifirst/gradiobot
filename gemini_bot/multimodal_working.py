@@ -88,9 +88,12 @@ def gemini_response(gr_message, history):
     text_message = gr_message.get("text", "")
     file_list = gr_message.get("files", [])
 
-    # Generate PDF only if user explicitly types "Generate PDF"
-    if text_message.lower() == "generate pdf":
-        return {"text": "Here is your PDF:", "files": [latest_pdf_path]}  # Provide downloadable PDF
+    # Return last generated PDF 
+    if text_message.strip().lower() == "generate pdf":
+        if latest_pdf_path:
+            return {"text": "Here is your PDF:", "files": [latest_pdf_path]}
+        else:
+            return {"text": "No PDF has been generated yet."}
     
     # Attach valid files (if any)
     message_attachments = []
@@ -106,10 +109,9 @@ def gemini_response(gr_message, history):
     response = my_chat.send_message(message)
     response_text = response.text.strip()
 
-    # Create PDF only if response is valid
-    if "cannot provide the pdf" not in response_text.lower():
-        latest_pdf_path = create_pdf_output(response_text)
-    
+    # Always generate a PDF from the response
+    latest_pdf_path = create_pdf_output(response_text)
+
     # Otherwise return just the text
     return response.text
 
