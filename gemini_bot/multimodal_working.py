@@ -64,17 +64,18 @@ def get_file_bytes(file_path):
 # Global variable to store latest PDF path
 latest_pdf_path = None
 
-def create_pdf_output(text):
+def create_pdf_output(text, filename="FinGPT_Response.pdf"):
     """Generate a temporary PDF file from chatbot response."""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.multi_cell(190, 10, text)
 
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
-        pdf_path = temp_file.name
-        pdf.output(pdf_path)
+    # Create a temp directory & assign a specific filename
+    temp_dir = tempfile.gettempdir()
+    pdf_path = os.path.join(temp_dir, filename)
 
+    pdf.output(pdf_path)
     return pdf_path  # Returns path for download
 
 # -----------------------------------------------------------------------------------------------------
@@ -87,10 +88,10 @@ def gemini_response(gr_message, history):
     text_message = gr_message.get("text", "")
     file_list = gr_message.get("files", [])
 
-    # Check if the user is requesting a PDF
-    if "pdf" in text_message.lower():
-        return {"text": "", "files": [latest_pdf_path]}  # Serve PDF on request
-
+    # Generate PDF only if user explicitly types "Generate PDF"
+    if text_message.lower() == "generate pdf":
+        return {"text": "Here is your PDF:", "files": [latest_pdf_path]}  # Provide downloadable PDF
+    
     # Attach valid files (if any)
     message_attachments = []
     for f in file_list:
@@ -103,9 +104,9 @@ def gemini_response(gr_message, history):
     # Send message to Gemini chatbot
     message = [str(text_message)] + message_attachments
     response = my_chat.send_message(message)
+    response_text = response.text.strip()
 
     # Create PDF only if response is valid
-    response_text = response.text.strip()
     if "cannot provide the pdf" not in response_text.lower():
         latest_pdf_path = create_pdf_output(response_text)
     
@@ -117,11 +118,11 @@ def gemini_response(gr_message, history):
 with gr.Blocks(fill_height=True) as demo:
     gr.Markdown("# FinGPT Bot")
     gr.Markdown("""
-    I am a HelpFul AI Assistant. Try me.
-    - Ask Financial Questions
-    - Upload a Image and ask to describe it.
-    - Upload a Financial CSV/PDF and ask questions on it. 
-    - Download response in PDF.                
+    I am a Helpful AI Assistant. Here's what I can do:
+    - Answer **financial-related questions**.
+    - Analyze **uploaded images** (describe the content).
+    - Process **financial PDFs & CSVs** (extract insights, answer questions).
+    - **To download your response as a PDF**, type `"generate PDF"`.             
     """)
     gr.ChatInterface(
         # title="Multimodal ChatBot",
