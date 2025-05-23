@@ -3,7 +3,7 @@ import os
 from telegram.constants import ChatAction
 import tempfile
 import shutil
-from multimodal_working import gemini_response
+from multimodal_working import gemini_response, get_latest_pdf_path
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -19,7 +19,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
+    user_text = update.message.text.strip().lower()
+
+    if user_text == "generate pdf":
+        pdf_path = get_latest_pdf_path()
+        if pdf_path and os.path.exists(pdf_path):
+            await update.message.reply_document(document=open(pdf_path, "rb"), caption="Here is your PDF")
+        else:
+            await update.message.reply_text("No PDF has been generated yet.")
+        return
     
     gr_message = {"text": user_text, "files": []}
     history = []  
